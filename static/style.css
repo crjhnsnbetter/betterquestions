@@ -1,0 +1,14 @@
+
+body {
+  font-family: sans-serif;
+}
+.results pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #f9f9f9;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
