@@ -1,50 +1,52 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Better Questions</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    .results a {
-      color: #0645ad;
-      text-decoration: underline;
-    }
-    .about-link {
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 0.9em;
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-
 <body>
-   <div style="background-color: #fff3cd; padding: 10px; border: 1px solid #ffeeba; color: #856404; font-size: 0.95em;">
-  ⚠️ <strong>Notice:</strong> PubMed will be undergoing maintenance starting <strong>July 25th at 9 PM EDT</strong>.
-  Better Questions relies on PubMed for citation-backed results, so the tool may be temporarily unavailable during this time.
-  <a href="https://www.ncbi.nlm.nih.gov/" target="_blank">More info from PubMed</a>.</div>
 
-  <div class="about-link"><a href="/about">About</a></div>
-  <div class="container">
-    <h1>Better Questions: Medical Exploration Tool</h1>
-    <form method="POST">
-      <label>Symptoms:</label><br>
-      <input type="text" name="symptoms" required><br><br>
-      <label>Known Conditions:</label><br>
-      <input type="text" name="conditions"><br><br>
-      <button type="submit">Get Questions</button>
-    </form>
-    {% if questions %}
-      <div class="results">
-        <h2>📝 Suggested Questions:</h2>
-        <div>{{ questions[0]|safe }}</div>
-        <p>{{ questions[1] }}</p>
-      </div>
-    {% endif %}
+  <h1>Better Questions</h1>
+
+  <div class="warning-banner">
+    ⚠️ <strong>Notice:</strong> If PubMed is currently down or under maintenance, Better Questions may return null results.
+    Please try again later or check <a href="https://www.ncbi.nlm.nih.gov/" target="_blank">PubMed</a> directly.
   </div>
-  <div style="margin-top: 30px; text-align: center; font-size: 0.9em;">
-  💡 Like this tool? <a href="https://gofund.me/cdbecb97" target="_blank">Support it on GoFundMe</a> to help cover AI and hosting costs.
-</div>
+
+  <form method="POST">
+    <label for="symptoms">Symptoms (comma-separated):</label><br>
+    <input type="text" id="symptoms" name="symptoms" required><br><br>
+
+    <label for="conditions">Known Diagnoses (comma-separated):</label><br>
+    <input type="text" id="conditions" name="conditions"><br><br>
+
+    <input type="submit" value="Generate Questions">
+  </form>
+
+  {% if questions %}
+    <div class="response-box">
+      {{ questions[0]|safe }}
+    </div>
+  {% endif %}
+
+  <div class="follow-links">
+    <p>
+      Follow on <a href="https://x.com/BetterToolsAI" target="_blank">@BetterToolsAI</a> &nbsp;|&nbsp;
+      Read more at <a href="https://charlestools.substack.com" target="_blank">charlestools.substack.com</a>
+    </p>
+  </div>
+
+  <footer>
+    <p class="disclaimer-text">
+      ⚠️ This tool does not provide medical advice or diagnoses. All results are generated from public literature. Always consult a licensed physician with any medical concerns.
+    </p>
+    <p class="mvp-note">
+      This is an MVP. I build fast and validate before polish. If it’s useful, it grows. If not, it costs nothing.
+    </p>
+  </footer>
 
 </body>
 </html>
