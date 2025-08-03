@@ -6,6 +6,33 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Better Questions</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    #progress-bar {
+      width: 100%;
+      background-color: #eee;
+      border-radius: 8px;
+      margin-top: 20px;
+      height: 20px;
+    }
+    #progress-fill {
+      height: 100%;
+      width: 0;
+      background-color: #4caf50;
+      border-radius: 8px;
+      transition: width 0.5s ease;
+    }
+    #progress-label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    #plaintext-output {
+      display: none;
+      margin-top: 15px;
+    }
+    .tool-buttons {
+      margin-top: 15px;
+    }
+  </style>
 </head>
 <body>
 
@@ -16,20 +43,30 @@
     Please try again later or check <a href="https://www.ncbi.nlm.nih.gov/" target="_blank">PubMed</a> directly.
   </div>
 
-  <form method="POST">
-    <label for="symptoms">Symptoms (comma-separated):</label><br>
-    <input type="text" id="symptoms" name="symptoms" required><br><br>
+  <form method="POST" onsubmit="startProgress()">
+    <label for="symptoms">Symptoms (comma-separated, max 3):</label><br>
+    <input type="text" id="symptoms" name="symptoms" maxlength="150" placeholder="e.g., fatigue, dizziness, rash" required><br><br>
 
-    <label for="conditions">Known Diagnoses (comma-separated):</label><br>
-    <input type="text" id="conditions" name="conditions"><br><br>
+    <label for="conditions">Known Diagnoses (comma-separated, max 3):</label><br>
+    <input type="text" id="conditions" name="conditions" maxlength="150" placeholder="e.g., lupus, fibromyalgia, anemia"><br><br>
 
     <input type="submit" value="Generate Questions">
   </form>
 
+  <div id="progress-label"></div>
+  <div id="progress-bar">
+    <div id="progress-fill"></div>
+  </div>
+
   {% if questions %}
+    <div class="tool-buttons">
+      <button onclick="window.print()">🖨 Print / Save as PDF</button>
+      <button onclick="copyText()">📋 Copy All to Clipboard</button>
+    </div>
     <div class="response-box">
       {{ questions[0]|safe }}
     </div>
+    <textarea id="plaintext-output">{{ questions[2] }}</textarea>
   {% endif %}
 
   <div class="follow-links">
@@ -47,6 +84,43 @@
       This is an MVP. I build fast and validate before polish. If it’s useful, it grows. If not, it costs nothing.
     </p>
   </footer>
+
+  <script>
+    const stages = [
+      "🔍 Searching PubMed...",
+      "📊 Running symptom-condition combinations...",
+      "🧠 Scoring and filtering articles...",
+      "📑 Analyzing top articles...",
+      "📝 Framing doctor questions..."
+    ];
+
+    function startProgress() {
+      const label = document.getElementById("progress-label");
+      const fill = document.getElementById("progress-fill");
+      let i = 0;
+      let width = 0;
+      const interval = setInterval(() => {
+        if (i < stages.length) {
+          label.textContent = stages[i];
+          width += 100 / stages.length;
+          fill.style.width = width + "%";
+          i++;
+        } else {
+          clearInterval(interval);
+        }
+      }, 1000);
+    }
+
+    function copyText() {
+      const textArea = document.getElementById("plaintext-output");
+      textArea.style.display = "block";
+      textArea.select();
+      textArea.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(textArea.value).then(() => {
+        alert("Copied to clipboard! You can paste it into a document or email.");
+      });
+    }
+  </script>
 
 </body>
 </html>

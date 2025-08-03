@@ -1,0 +1,17 @@
+# Better Questions — Ethical Clause (for Public Use)
+
+This tool is distributed under the terms of the AGPL-3.0 license.
+It is provided freely to empower patients and caregivers, not to exploit them.
+
+By forking or deploying this project, you agree to:
+
+- Not monetize user interaction via ads or manipulative upsells
+- Clearly disclose any changes to the logic that affect medical relevance or data privacy
+- Preserve or improve upon the citation-backed question logic
+- Avoid token gating, paywalls, or usage throttles without providing a free tier
+
+Any attempts to commercialize this codebase must clearly separate added value from what is freely available.
+
+---
+
+© 2025 Charles Johnson. All rights reserved under AGPL-3.0.

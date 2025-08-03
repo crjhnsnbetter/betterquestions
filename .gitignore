@@ -22,3 +22,6 @@ Thumbs.db
 
 # dotenv
 .env
+
+# Ignore token usage log
+token_usage_log.csv

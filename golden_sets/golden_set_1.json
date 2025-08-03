@@ -1,0 +1,19 @@
+{
+  "input": {
+    "symptoms": ["chronic fatigue"],
+    "conditions": ["fibromyalgia"]
+  },
+  "expected_questions": [
+    { "pmid": "40726775" },
+    { "pmid": "40724680" },
+    { "pmid": "40704869" },
+    { "pmid": "40706012" },
+    { "pmid": "40704037" },
+    { "pmid": "40696633" },
+    { "pmid": "40693547" }
+  ],
+  "trimmed_notice": true,
+  "model": "gpt-3.5-turbo",
+  "tokens": 540,
+  "cost_usd": 0.0027
+}

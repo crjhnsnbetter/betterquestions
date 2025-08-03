@@ -36,3 +36,40 @@ def query_pubmed(symptoms, conditions, age=None, sex=None):
     else:
         return {"error": f"PubMed query failed: {response.status_code}"}
     print("🧠 Using aliased import for query_pubmed → search_pubmed")
+
+def fetch_article_metadata(pmids):
+    """
+    Fetches article titles, abstracts, and years for a list of PMIDs.
+    """
+    url = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi"
+    params = {
+        "db": "pubmed",
+        "id": ",".join(pmids),
+        "retmode": "xml"
+    }
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        return []
+
+    import xml.etree.ElementTree as ET
+    root = ET.fromstring(response.text)
+    articles = []
+
+    for article in root.findall(".//PubmedArticle"):
+        try:
+            pmid = article.findtext(".//PMID")
+            title = article.findtext(".//ArticleTitle") or ""
+            abstract = " ".join(
+                part.text or "" for part in article.findall(".//AbstractText")
+            ).strip()
+            year = article.findtext(".//PubDate/Year") or "2023"
+
+            articles.append({
+                "pmid": pmid,
+                "title": title,
+                "abstract": abstract,
+                "pub_year": year
+            })
+        except Exception:
+            continue
+    return articles
