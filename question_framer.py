@@ -1,5 +1,3 @@
-# question_framer.py
-
 import os
 import markdown
 from openai import OpenAI
@@ -7,7 +5,7 @@ from dotenv import load_dotenv
 from pubmed_query_agent import fetch_article_metadata
 from token_logger import TokenLogger
 from legal_disclaimer import get_disclaimer_text
-from article_scorer import filter_top_articles
+from article_scorer import filter_top_articles, classify_score, get_label_color
 import re
 
 load_dotenv()
@@ -47,6 +45,7 @@ def frame_questions(pubmed_json, symptoms, conditions):
 
     # Score and filter articles
     scored_articles = filter_top_articles(articles, query_dict, limit=ARTICLE_LIMIT)
+    pmid_score_map = {a["pmid"]: s for a, s in scored_articles}
     top_articles = [a for a, _ in scored_articles]
     trimmed = len(scored_articles) < len(articles)
 
@@ -62,7 +61,8 @@ def frame_questions(pubmed_json, symptoms, conditions):
                 "You are a careful and concise medical assistant. Use only the user’s symptoms, known conditions, "
                 "and the provided PubMed articles to generate medically relevant questions to ask a doctor. "
                 "Only include questions that can be directly supported by one of the PubMed articles. "
-                "Format each question in Markdown, with a clickable [PubMed Article](https://...) link inline. "
+                "Format each question in Markdown, using a clickable link in this format: "
+                "[PubMed #PMID](https://pubmed.ncbi.nlm.nih.gov/PMID). Do not cite multiple articles per question. "
                 "Do not provide medical advice or diagnoses."
             ),
         },
@@ -71,7 +71,7 @@ def frame_questions(pubmed_json, symptoms, conditions):
             "content": (
                 f"{query_summary}\n"
                 f"Relevant PubMed Articles (with full links):\n{article_links}\n\n"
-                "Please suggest possible questions to ask a doctor, and include the full clickable PubMed links for each citation in your response."
+                "Please suggest possible questions to ask a doctor. Use exactly one PMID per question."
             ),
         }
     ]
@@ -81,7 +81,7 @@ def frame_questions(pubmed_json, symptoms, conditions):
             model=OPENAI_MODEL,
             messages=messages,
             temperature=0.5,
-            max_tokens=700,
+            max_tokens=1500,
         )
         reply = response.choices[0].message.content.strip()
 
@@ -90,20 +90,45 @@ def frame_questions(pubmed_json, symptoms, conditions):
 
         logger.log(messages[1]["content"], reply, model=OPENAI_MODEL, meta={"symptoms": symptoms, "conditions": conditions})
 
+        # Insert color-coded PubMed tags inline
+        for pmid in pmid_score_map:
+            score = pmid_score_map[pmid]
+            emoji = get_label_color(score, as_emoji=True)
+            reply = reply.replace(
+                f"[PubMed #{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid})",
+                f"{emoji} [PubMed #{pmid}](https://pubmed.ncbi.nlm.nih.gov/{pmid})"
+            )
+
         reply_html = markdown.markdown(reply)
         pmids_used = extract_pmids_from_links(reply)
-        pmid_note = "<br><br><strong>Referenced PMIDs:</strong><br>" + ", ".join(pmids_used) if pmids_used else ""
 
-        # Add note about which combination was used
         context_msg = f"<p><strong>Note:</strong> Questions below were generated using the combination <code>{', '.join(symptoms)}</code> + <code>{', '.join(conditions)}</code>. You may try removing one or both to explore other patterns.</p>"
-        reply_html = context_msg + reply_html + pmid_note
+        reply_html = context_msg + reply_html
 
         if trimmed:
             reply_html += "\n<p><em>Only the most relevant articles were used to reduce token cost. Support helps unlock deeper analysis.</em></p>"
 
+        # Provide reference list
+        if pmids_used:
+            reply_html += "<p><strong>Referenced Articles:</strong></p><ul>"
+            for pmid in pmids_used:
+                score = pmid_score_map.get(pmid, 0)
+                emoji = get_label_color(score, as_emoji=True)
+                label = classify_score(score)
+                reply_html += f"<li>{emoji} PubMed #{pmid} – {label}</li>"
+            reply_html += "</ul>"
+
+        # Add legend
+        reply_html += (
+            "<p><strong>Question Context Legend:</strong><br>"
+            "<span style='color:green;'>🟢 Potentially Valuable Insight</span>: This may point to information your doctor has already considered, or offer a fresh angle worth discussing.<br>"
+            "<span style='color:orange;'>🟡 Relevant Research</span>: Linked article may help frame your concern more clearly.<br>"
+            "<span style='color:gray;'>⚪ General Reference</span>: Standard or background information — may support basic understanding.</p>"
+        )
+
         # Also provide plaintext version for copying
         reply_plain = f"Better Questions – Generated for: {', '.join(symptoms)} + {', '.join(conditions)}\n\n"
-        for i, line in enumerate(reply.split("\n")):
+        for line in reply.split("\n"):
             reply_plain += line + "\n"
         if pmids_used:
             reply_plain += "\nReferenced PMIDs: " + ", ".join(pmids_used) + "\n"

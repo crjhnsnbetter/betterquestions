@@ -32,14 +32,23 @@
       <button type="submit">Submit</button>
     </form>
 
+    <div id="status" style="font-weight: bold; margin-top: 1em;"></div>
+
     {% if questions %}
       <section class="results">
         <h2>Framed Questions</h2>
-        <ul>
-          {% for q in questions %}
-            <li>{{ q|safe }}</li>
-          {% endfor %}
-        </ul>
+        {{ questions[0]|safe }}
+      </section>
+
+      <section class="disclaimer">
+        {{ questions[1]|safe }}
+      </section>
+
+      <section class="plaintext">
+        <details>
+          <summary>🔍 Plain Text Output (for copy/paste)</summary>
+          <pre>{{ questions[2] }}</pre>
+        </details>
       </section>
     {% endif %}
   </main>
@@ -50,15 +59,49 @@
     <p style="color: #b30000; font-weight: bold;">
     ⚠️ Note: If PubMed is temporarily unavailable, this tool will not return results. Please try again later.
     </p>
-   <p>
-    Follow project updates:<br>
-    📝 <a href="https://charlestools.substack.com" target="_blank">Better Questions on Substack</a><br>
-    🐦 <a href="https://x.com/BetterToolsAI" target="_blank">@BetterToolsAI on X (Twitter)</a>
-  </p>
-</div>
+    <p>
+      Follow project updates:<br>
+      📝 <a href="https://charlestools.substack.com" target="_blank">Better Questions on Substack</a><br>
+      🔦 <a href="https://x.com/BetterToolsAI" target="_blank">@BetterToolsAI on X (Twitter)</a>
+    </p>
+  </div>
 
-<footer>
-  <p>&copy; 2025 Charles Johnson | <a href="https://bettertoolsfromcharles.com">bettertoolsfromcharles.com</a></p>
-</footer>
+  <footer>
+    <p>&copy; 2025 Charles Johnson | <a href="https://bettertoolsfromcharles.com">bettertoolsfromcharles.com</a></p>
+  </footer>
+
+  <script>
+    const form = document.querySelector("form");
+    const statusBox = document.getElementById("status");
+
+    if (form && statusBox) {
+      form.addEventListener("submit", () => {
+        let steps = [
+          "🔍 Querying PubMed...",
+          "📊 Scoring results...",
+          "🧠 Framing questions...",
+          "✅ Done. Displaying output..."
+        ];
+        let i = 0;
+        statusBox.textContent = steps[i];
+        const interval = setInterval(() => {
+          i++;
+          if (i < steps.length) {
+            statusBox.textContent = steps[i];
+          } else {
+            clearInterval(interval);
+          }
+        }, 2500);
+      });
+    }
+  </script>
+  <script>
+  window.onload = function () {
+    const input1 = document.getElementById("symptoms");
+    const input2 = document.getElementById("conditions");
+    if (input1) input1.value = "";
+    if (input2) input2.value = "";
+  };
+</script>
 </body>
 </html>

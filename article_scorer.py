@@ -69,4 +69,18 @@ def filter_top_articles(articles, query, limit=10):
     scored.sort(key=lambda x: x[1], reverse=True)
     return scored[:limit]
 
+def classify_score(score):
+    if score >= 11:
+        return "🟢 Potentially Valuable Insight"
+    elif score >= 9:
+        return "🟡 Relevant Research"
+    else:
+        return "⚪ General Reference"
 
+def get_label_color(score, as_emoji=False):
+    if score >= 11:
+        return "🟢" if as_emoji else "green"
+    elif score >= 8:
+        return "🟡" if as_emoji else "orange"
+    else:
+        return "⚪" if as_emoji else "gray"
